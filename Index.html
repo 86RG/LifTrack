@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hevy Tracker - Date Wise</title>
+    
+    <!-- Mobile PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#09090b">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #09090b;
+            color: #f4f4f5;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        /* Remove arrows from numeric inputs */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none;
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .completed-row {
+            background-color: rgba(34, 197, 94, 0.08) !important;
+        }
+
+        .active-split-btn {
+            background-color: #059669 !important;
+            color: #ffffff !important;
+            border-color: #10b981 !important;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+        }
+
+        .active-rest-btn {
+            background-color: #d97706 !important;
+            color: #ffffff !important;
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.35);
+        }
+
+        color-scheme: dark;
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col justify-between select-none pb-20">
+
+    <!-- TOP HEADER -->
+    <header class="sticky top-0 z-30 bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500 font-bold text-sm">
+                <i class="fa-solid fa-dumbbell"></i>
+            </div>
+            <h1 class="text-base font-extrabold tracking-tight text-white">HEVY<span class="text-emerald-500">LOG</span></h1>
+        </div>
+        <div id="date-badge" class="text-xs font-mono font-medium text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+            <i class="fa-regular fa-calendar text-[10px]"></i> <span id="header-date-text">Today</span>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 max-w-lg w-full mx-auto px-4 pt-4 pb-12">
+        
+        <!-- WORKOUT TAB -->
+        <section id="tab-workout" class="tab-content space-y-4">
+            
+            <!-- SPLIT PRESET QUICK SELECTOR -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between items-center px-1">
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Choose Today's Split</label>
+                </div>
+                <div class="grid grid-cols-5 gap-1.5 bg-zinc-950 p-1.5 border border-zinc-800 rounded-2xl shadow-lg">
+                    <button id="btn-split-chest" onclick="applySplitPreset('Chest Day')" class="split-btn py-2.5 rounded-xl text-[11px] font-bold text-zinc-400 hover:text-white bg-zinc-900/50 border border-zinc-800/80 transition-all flex flex-col items-center gap-1 active:scale-95">
+                        <i class="fa-solid fa-child-reaching text-emerald-400 text-xs"></i> Chest
+                    </button>
+                    <button id="btn-split-back" onclick="applySplitPreset('Back Day')" class="split-btn py-2.5 rounded-xl text-[11px] font-bold text-zinc-400 hover:text-white bg-zinc-900/50 border border-zinc-800/80 transition-all flex flex-col items-center gap-1 active:scale-95">
+                        <i class="fa-solid fa-person-arrow-up-from-line text-emerald-400 text-xs"></i> Back
+                    </button>
+                    <button id="btn-split-legs" onclick="applySplitPreset('Leg Day')" class="split-btn py-2.5 rounded-xl text-[11px] font-bold text-zinc-400 hover:text-white bg-zinc-900/50 border border-zinc-800/80 transition-all flex flex-col items-center gap-1 active:scale-95">
+                        <i class="fa-solid fa-person-running text-emerald-400 text-xs"></i> Legs
+                    </button>
+                    <button id="btn-split-arms" onclick="applySplitPreset('Arm Day')" class="split-btn py-2.5 rounded-xl text-[11px] font-bold text-zinc-400 hover:text-white bg-zinc-900/50 border border-zinc-800/80 transition-all flex flex-col items-center gap-1 active:scale-95">
+                        <i class="fa-solid fa-dumbbell text-emerald-400 text-xs"></i> Arms
+                    </button>
+                    <button id="btn-split-rest" onclick="applySplitPreset('Rest Day')" class="split-btn py-2.5 rounded-xl text-[11px] font-bold text-amber-400/80 hover:text-amber-300 bg-zinc-900/50 border border-zinc-800/80 transition-all flex flex-col items-center gap-1 active:scale-95">
+                        <i class="fa-solid fa-bed text-amber-400 text-xs"></i> Rest
+                    </button>
+                </div>
+            </div>
+
+            <!-- WORKOUT DATE SELECTOR & ACTIONS -->
+            <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 space-y-3 shadow-lg">
+                <div class="flex items-center justify-between gap-2">
+                    <label class="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-calendar-day text-emerald-500"></i> Date
+                    </label>
+                    <input type="date" id="workout-date-picker" onchange="handleDateChange(this.value)" class="bg-zinc-900 border border-zinc-700/80 rounded-xl px-2.5 py-1 text-xs font-semibold text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                
+                <div class="pt-1 border-t border-zinc-800/80 flex items-center justify-between gap-2">
+                    <input type="text" id="workout-title-input" value="Select a Split" class="bg-transparent font-extrabold text-base text-white border-none p-0 focus:outline-none w-full" placeholder="Workout Title...">
+                </div>
+            </div>
+
+            <!-- EXERCISES LIST FOR SELECTED DATE -->
+            <div id="date-exercises-container" class="space-y-4">
+                <div id="date-exercises-list" class="space-y-4"></div>
+            </div>
+
+            <!-- ADD EXERCISE BUTTON -->
+            <button id="add-exercise-btn" onclick="openAddExerciseModal()" class="w-full py-3.5 border border-dashed border-zinc-700 hover:border-emerald-500/50 bg-zinc-950/60 text-emerald-400 font-bold text-xs rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-[0.99] shadow-lg">
+                <i class="fa-solid fa-plus text-xs"></i> Add Exercise
+            </button>
+            
+            <!-- CLEAR DATE LOGS BUTTON -->
+            <div class="pt-2 text-center">
+                <button onclick="clearCurrentDateLog()" class="text-xs font-medium text-rose-500/80 hover:text-rose-400 transition-colors">
+                    Clear Logs for Selected Date
+                </button>
+            </div>
+        </section>
+
+        <!-- HISTORY TAB -->
+        <section id="tab-history" class="tab-content hidden space-y-4">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-base font-bold text-white">Date-Wise History</h2>
+                <span id="total-days-count" class="text-xs bg-zinc-800 text-zinc-400 px-2.5 py-1 rounded-full border border-zinc-700/50">0 days logged</span>
+            </div>
+            
+            <div id="history-by-date-list" class="space-y-3">
+                <!-- History Items rendered dynamically -->
+            </div>
+        </section>
+
+        <!-- ANALYTICS PROGRESS TAB -->
+        <section id="tab-analytics" class="tab-content hidden space-y-4">
+            <div class="flex justify-between items-center mb-1">
+                <h2 class="text-base font-bold text-white">Progress Analytics</h2>
+                <span class="text-xs text-emerald-400 font-medium flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-trend-up"></i> Volume & Reps Analysis
+                </span>
+            </div>
+
+            <!-- EXERCISE SELECTOR DROPDOWN -->
+            <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 shadow-lg">
+                <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">Choose Exercise</label>
+                <select id="analytics-exercise-select" onchange="renderAnalyticsForExercise(this.value)" class="w-full bg-zinc-900 border border-zinc-700 text-white text-xs font-semibold rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500">
+                    <!-- Populated dynamically -->
+                </select>
+            </div>
+
+            <!-- STATS CARDS -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3.5 shadow-lg">
+                    <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Best Weight Lifted</span>
+                    <div id="stat-max-weight" class="text-xl font-extrabold text-emerald-400 font-mono mt-1">0 kg</div>
+                    <span id="stat-max-weight-date" class="text-[10px] text-zinc-500 block mt-0.5">No records</span>
+                </div>
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3.5 shadow-lg">
+                    <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Best Session Volume</span>
+                    <div id="stat-best-volume" class="text-xl font-extrabold text-white font-mono mt-1">0 kg</div>
+                    <span id="stat-best-volume-reps" class="text-[10px] text-zinc-500 block mt-0.5">Weight Ã Total Reps</span>
+                </div>
+            </div>
+
+            <!-- TOTAL VOLUME & REPS PROGRESS CHART -->
+            <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 shadow-lg space-y-2">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-white">Total Volume Progress</h3>
+                    <span class="text-[10px] font-mono text-zinc-500">(Weight Ã Reps per session)</span>
+                </div>
+                <div class="h-44 w-full">
+                    <canvas id="progress-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- HISTORICAL LOGS FOR THIS EXERCISE -->
+            <div class="space-y-2 pt-1">
+                <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Past Performance Breakdown</h3>
+                <div id="analytics-exercise-history" class="space-y-2">
+                    <!-- Exercise log history cards rendered dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- EXERCISES LIBRARY TAB -->
+        <section id="tab-exercises" class="tab-content hidden space-y-4">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-base font-bold text-white">Exercise Library</h2>
+                <button onclick="openCustomExerciseModal()" class="bg-zinc-800 hover:bg-zinc-700 text-emerald-400 border border-zinc-700 text-xs px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all active:scale-95">
+                    <i class="fa-solid fa-plus"></i> Custom
+                </button>
+            </div>
+
+            <div class="relative">
+                <i class="fa-solid fa-search absolute left-3.5 top-3 text-xs text-zinc-500"></i>
+                <input type="text" id="exercise-search-input" onkeyup="filterExercisesList()" placeholder="Search exercises..." class="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700">
+            </div>
+
+            <div id="library-exercises-list" class="space-y-2">
+                <!-- Exercises list rendered dynamically -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-0 right-0 z-30 bg-zinc-950/95 backdrop-blur-md border-t border-zinc-800/80 px-4 py-2">
+        <div class="max-w-lg mx-auto flex justify-around items-center">
+            <button onclick="switchTab('workout')" id="nav-workout" class="nav-item flex flex-col items-center gap-1 text-emerald-500 transition-colors py-1">
+                <i class="fa-solid fa-calendar-check text-base"></i>
+                <span class="text-[10px] font-semibold tracking-wide">Log</span>
+            </button>
+            <button onclick="switchTab('history')" id="nav-history" class="nav-item flex flex-col items-center gap-1 text-zinc-500 hover:text-zinc-300 transition-colors py-1">
+                <i class="fa-solid fa-clock-rotate-left text-base"></i>
+                <span class="text-[10px] font-semibold tracking-wide">History</span>
+            </button>
+            <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-item flex flex-col items-center gap-1 text-zinc-500 hover:text-zinc-300 transition-colors py-1">
+                <i class="fa-solid fa-chart-line text-base"></i>
+                <span class="text-[10px] font-semibold tracking-wide">Analytics</span>
+            </button>
+            <button onclick="switchTab('exercises')" id="nav-exercises" class="nav-item flex flex-col items-center gap-1 text-zinc-500 hover:text-zinc-300 transition-colors py-1">
+                <i class="fa-solid fa-list-ul text-base"></i>
+                <span class="text-[10px] font-semibold tracking-wide">Exercises</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- SELECT EXERCISE MODAL -->
+    <div id="add-exercise-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden transition-opacity">
+        <div class="bg-zinc-950 border border-zinc-800 w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-zinc-800 flex justify-between items-center">
+                <h3 class="font-bold text-white text-sm uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-dumbbell text-emerald-500"></i> Select Exercise
+                </h3>
+                <button onclick="closeAddExerciseModal()" class="text-zinc-400 hover:text-white text-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-3 border-b border-zinc-800 bg-zinc-900/40 space-y-2">
+                <input type="text" id="modal-exercise-search" onkeyup="filterModalExercises()" placeholder="Search library..." class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700">
+                
+                <!-- Category Filter Chips -->
+                <div id="modal-category-chips" class="flex gap-1.5 overflow-x-auto pb-1 text-[10px] no-scrollbar">
+                    <button onclick="setModalCategoryFilter('All')" class="cat-chip active-cat-chip bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-1 rounded-lg font-bold shrink-0">All</button>
+                    <button onclick="setModalCategoryFilter('Chest')" class="cat-chip bg-zinc-900 text-zinc-400 border border-zinc-800 px-2.5 py-1 rounded-lg font-medium shrink-0">Chest</button>
+                    <button onclick="setModalCategoryFilter('Back')" class="cat-chip bg-zinc-900 text-zinc-400 border border-zinc-800 px-2.5 py-1 rounded-lg font-medium shrink-0">Back</button>
+                    <button onclick="setModalCategoryFilter('Legs')" class="cat-chip bg-zinc-900 text-zinc-400 border border-zinc-800 px-2.5 py-1 rounded-lg font-medium shrink-0">Legs</button>
+                    <button onclick="setModalCategoryFilter('Arms')" class="cat-chip bg-zinc-900 text-zinc-400 border border-zinc-800 px-2.5 py-1 rounded-lg font-medium shrink-0">Arms</button>
+                    <button onclick="setModalCategoryFilter('Shoulders')" class="cat-chip bg-zinc-900 text-zinc-400 border border-zinc-800 px-2.5 py-1 rounded-lg font-medium shrink-0">Shoulders</button>
+                </div>
+            </div>
+
+            <div id="modal-exercise-list" class="p-3 overflow-y-auto space-y-2 flex-1 max-h-[50vh]">
+                <!-- Dynamic exercise choices -->
+            </div>
+
+            <div class="p-3 border-t border-zinc-800 bg-zinc-900/40 flex justify-between items-center">
+                <button onclick="openCustomExerciseModal()" class="text-xs text-emerald-400 hover:underline font-medium">
+                    + Create Custom Exercise
+                </button>
+                <button onclick="closeAddExerciseModal()" class="px-4 py-2 bg-zinc-800 text-zinc-300 text-xs rounded-xl font-semibold">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREATE CUSTOM EXERCISE MODAL -->
+    <div id="create-custom-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden transition-opacity">
+        <div class="bg-zinc-950 border border-zinc-800 w-full max-w-sm rounded-2xl flex flex-col shadow-2xl overflow-hidden p-5 space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-white text-sm uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-dumbbell text-emerald-500"></i> New Custom Exercise
+                </h3>
+                <button onclick="closeCustomExerciseModal()" class="text-zinc-400 hover:text-white text-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Exercise Name</label>
+                    <input type="text" id="custom-ex-name" placeholder="e.g., Incline Cable Flyes" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Muscle Category</label>
+                    <select id="custom-ex-category" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                        <option value="Chest">Chest</option>
+                        <option value="Back">Back</option>
+                        <option value="Legs">Legs</option>
+                        <option value="Shoulders">Shoulders</option>
+                        <option value="Arms">Arms</option>
+                        <option value="Core">Core</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeCustomExerciseModal()" class="px-3.5 py-2 bg-zinc-800 text-zinc-300 text-xs rounded-xl font-semibold hover:bg-zinc-700 transition-all">
+                    Cancel
+                </button>
+                <button onclick="saveCustomExercise()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-xl font-bold transition-all shadow-lg active:scale-95">
+                    Save Exercise
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION BANNER -->
+    <div id="toast" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 bg-zinc-800 border border-zinc-700 text-white text-xs px-4 py-2 rounded-full shadow-2xl pointer-events-none opacity-0 transition-opacity flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-emerald-500"></i>
+        <span id="toast-message">Saved</span>
+    </div>
+
+    <!-- APPLICATION LOGIC -->
+    <script>
+        const DEFAULT_EXERCISES = [
+            { id: 'ex_1', name: 'Bench Press (Barbell)', category: 'Chest' },
+            { id: 'ex_4', name: 'Incline Dumbbell Press', category: 'Chest' },
+            { id: 'ex_11', name: 'Incline Barbell Press', category: 'Chest' },
+            { id: 'ex_12', name: 'Dumbbell Chest Flyes', category: 'Chest' },
+            { id: 'ex_13', name: 'Cable Chest Flyes / Crossovers', category: 'Chest' },
+            { id: 'ex_14', name: 'Chest Dips', category: 'Chest' },
+            { id: 'ex_15', name: 'Push-ups', category: 'Chest' },
+            { id: 'ex_38', name: 'Pec Deck / Machine Chest Flyes', category: 'Chest' },
+            { id: 'ex_39', name: 'Incline Cable Flyes', category: 'Chest' },
+            { id: 'ex_40', name: 'Low to High Cable Flyes', category: 'Chest' },
+
+            { id: 'ex_3', name: 'Lat Pulldown (Cable)', category: 'Back' },
+            { id: 'ex_6', name: 'Barbell Row', category: 'Back' },
+            { id: 'ex_8', name: 'Pull-ups / Chin-ups', category: 'Back' },
+            { id: 'ex_16', name: 'Seated Cable Row', category: 'Back' },
+            { id: 'ex_17', name: 'Single-Arm Dumbbell Row', category: 'Back' },
+            { id: 'ex_18', name: 'Deadlift (Barbell)', category: 'Back' },
+            { id: 'ex_20', name: 'Face Pulls', category: 'Back' },
+
+            { id: 'ex_2', name: 'Squat (Barbell)', category: 'Legs' },
+            { id: 'ex_7', name: 'Romanian Deadlift (RDL)', category: 'Legs' },
+            { id: 'ex_21', name: 'Leg Press', category: 'Legs' },
+            { id: 'ex_22', name: 'Bulgarian Split Squat', category: 'Legs' },
+            { id: 'ex_23', name: 'Leg Extension (Machine)', category: 'Legs' },
+            { id: 'ex_24', name: 'Lying Leg Curl (Machine)', category: 'Legs' },
+
+            { id: 'ex_5', name: 'Overhead Press (Barbell)', category: 'Shoulders' },
+            { id: 'ex_26', name: 'Seated Dumbbell Shoulder Press', category: 'Shoulders' },
+            { id: 'ex_27', name: 'Lateral Raises (Dumbbell)', category: 'Shoulders' },
+
+            { id: 'ex_9', name: 'Bicep Barbell Curls', category: 'Arms' },
+            { id: 'ex_10', name: 'Tricep Rope Pushdowns', category: 'Arms' },
+            { id: 'ex_30', name: 'Dumbbell Hammer Curls', category: 'Arms' },
+            { id: 'ex_33', name: 'Overhead Tricep Extension (Cable)', category: 'Arms' }
+        ];
+
+        const SPLIT_PRESETS = {
+            'Chest Day': ['ex_1', 'ex_4', 'ex_12', 'ex_13'],
+            'Back Day': ['ex_3', 'ex_6', 'ex_16', 'ex_20'],
+            'Leg Day': ['ex_2', 'ex_7', 'ex_21', 'ex_24'],
+            'Arm Day': ['ex_9', 'ex_10', 'ex_30', 'ex_33'],
+            'Rest Day': []
+        };
+
+        let exercises = [];
+        let dateLogs = {};
+        let splitMemory = {};
+        let selectedDate = new Date().toISOString().split('T')[0];
+        let progressChartInstance = null;
+        let activeModalCategoryFilter = 'All';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            
+            const datePicker = document.getElementById('workout-date-picker');
+            if (datePicker) datePicker.value = selectedDate;
+            
+            renderExercisesLibrary();
+            loadWorkoutForDate(selectedDate);
+            renderHistoryByDate();
+            setupAnalyticsDropdown();
+        });
+
+        function loadFromLocalStorage() {
+            try {
+                const storedExercises = localStorage.getItem('hevy_date_exercises');
+                exercises = storedExercises ? JSON.parse(storedExercises) : [...DEFAULT_EXERCISES];
+
+                const storedLogs = localStorage.getItem('hevy_date_logs');
+                dateLogs = storedLogs ? JSON.parse(storedLogs) : {};
+
+                const storedSplitMemory = localStorage.getItem('hevy_split_memory');
+                splitMemory = storedSplitMemory ? JSON.parse(storedSplitMemory) : JSON.parse(JSON.stringify(SPLIT_PRESETS));
+            } catch (e) {
+                console.error("Failed to parse LocalStorage data", e);
+                exercises = [...DEFAULT_EXERCISES];
+                dateLogs = {};
+                splitMemory = JSON.parse(JSON.stringify(SPLIT_PRESETS));
+            }
+        }
+
+        function saveLogsToStorage() {
+            try {
+                localStorage.setItem('hevy_date_logs', JSON.stringify(dateLogs));
+            } catch (e) {
+                console.error("Failed to save logs to localStorage", e);
+            }
+        }
+
+        function saveExercisesToStorage() {
+            try {
+                localStorage.setItem('hevy_date_exercises', JSON.stringify(exercises));
+            } catch (e) {
+                console.error("Failed to save exercises to localStorage", e);
+            }
+        }
+
+        function saveSplitMemoryToStorage() {
+            try {
+                localStorage.setItem('hevy_split_memory', JSON.stringify(splitMemory));
+            } catch (e) {
+                console.error("Failed to save split memory to localStorage", e);
+            }
+        }
+
+        function handleDateChange(newDate) {
+            if (!newDate) return;
+            selectedDate = newDate;
+            loadWorkoutForDate(selectedDate);
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            const headerText = document.getElementById('header-date-text');
+            if (headerText) {
+                headerText.innerText = (selectedDate === todayStr) ? 'Today' : selectedDate;
+            }
+        }
+
+        function loadWorkoutForDate(dateStr) {
+            if (!dateLogs[dateStr]) {
+                dateLogs[dateStr] = {
+                    title: 'Select a Split',
+                    exercises: [],
+                    isRestDay: false
+                };
+            }
+
+            const titleInput = document.getElementById('workout-title-input');
+            if (titleInput) {
+                titleInput.value = dateLogs[dateStr].title || 'Select a Split';
+                titleInput.onchange = (e) => {
+                    dateLogs[dateStr].title = e.target.value;
+                    saveLogsToStorage();
+                    renderHistoryByDate();
+                    highlightActiveSplitButton(e.target.value);
+                };
+            }
+
+            highlightActiveSplitButton(dateLogs[dateStr].title);
+            renderDateExercises();
+        }
+
+        function highlightActiveSplitButton(title) {
+            document.querySelectorAll('.split-btn').forEach(btn => {
+                btn.classList.remove('active-split-btn', 'active-rest-btn');
+            });
+
+            if (!title) return;
+
+            if (title === 'Chest Day') {
+                const btn = document.getElementById('btn-split-chest');
+                if (btn) btn.classList.add('active-split-btn');
+            } else if (title === 'Back Day') {
+                const btn = document.getElementById('btn-split-back');
+                if (btn) btn.classList.add('active-split-btn');
+            } else if (title === 'Leg Day') {
+                const btn = document.getElementById('btn-split-legs');
+                if (btn) btn.classList.add('active-split-btn');
+            } else if (title === 'Arm Day') {
+                const btn = document.getElementById('btn-split-arms');
+                if (btn) btn.classList.add('active-split-btn');
+            } else if (title === 'Rest Day') {
+                const btn = document.getElementById('btn-split-rest');
+                if (btn) btn.classList.add('active-rest-btn');
+            }
+        }
+
+        function getLastPerformanceForExercise(exerciseId, currentDateStr) {
+            const sortedDates = Object.keys(dateLogs)
+                .filter(d => d < currentDateStr)
+                .sort((a, b) => b.localeCompare(a));
+
+            for (let date of sortedDates) {
+                const session = dateLogs[date];
+                if (session && session.exercises) {
+                    const foundEx = session.exercises.find(e => e.exerciseId === exerciseId);
+                    if (foundEx && foundEx.sets && foundEx.sets.length > 0) {
+                        const validSets = foundEx.sets.filter(s => s.reps > 0 || s.weight > 0 || s.completed);
+                        if (validSets.length > 0) {
+                            return { date: date, sets: validSets };
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        function renderDateExercises() {
+            const list = document.getElementById('date-exercises-list');
+            const addBtn = document.getElementById('add-exercise-btn');
+            if (!list) return;
+            list.innerHTML = '';
+
+            const currentWorkout = dateLogs[selectedDate];
+
+            if (currentWorkout && currentWorkout.isRestDay) {
+                if (addBtn) addBtn.classList.add('hidden');
+                list.innerHTML = `
+                    <div class="text-center py-12 px-4 border border-zinc-800 rounded-2xl bg-zinc-950/40 space-y-3">
+                        <div class="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto text-xl">
+                            <i class="fa-solid fa-bed"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Rest & Recovery Day</h3>
+                            <p class="text-xs text-zinc-500 mt-1">Logged Rest Day for <span class="text-amber-400 font-mono">${selectedDate}</span>.</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (addBtn) addBtn.classList.remove('hidden');
+
+            if (!currentWorkout || !currentWorkout.exercises || currentWorkout.exercises.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-10 text-zinc-600 text-xs border border-zinc-800/60 rounded-2xl bg-zinc-950/30">
+                        No exercises logged for <span class="text-zinc-400 font-semibold">${selectedDate}</span>.<br>Select a split above or tap "Add Exercise" below.
+                    </div>
+                `;
+                return;
+            }
+
+            currentWorkout.exercises.forEach((exItem, exIndex) => {
+                const exerciseObj = exercises.find(e => e.id === exItem.exerciseId) || { name: 'Custom Exercise' };
+                const lastPerf = getLastPerformanceForExercise(exItem.exerciseId, selectedDate);
+
+                const card = document.createElement('div');
+                card.className = 'bg-zinc-950 border border-zinc-800 rounded-2xl p-4 space-y-3 shadow-lg';
+
+                let html = `
+                    <div class="flex justify-between items-center">
+                        <div class="space-y-0.5">
+                            <h3 class="font-bold text-sm text-white">${exerciseObj.name}</h3>
+                            <p class="text-[10px] font-medium text-emerald-400">
+                                ${lastPerf ? `<i class="fa-solid fa-clock-rotate-left"></i> Prev (${lastPerf.date}): ${lastPerf.sets.map(s => `${s.weight}kgÃ${s.reps}`).join(', ')}` : '<i class="fa-solid fa-star text-[9px]"></i> First time doing this lift'}
+                            </p>
+                        </div>
+                        <button onclick="removeExerciseFromDate(${exIndex})" class="text-zinc-600 hover:text-rose-400 p-1 text-xs transition-colors">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+
+                    <div class="space-y-1.5 pt-1">
+                        <div class="grid grid-cols-12 gap-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500 text-center px-1">
+                            <span class="col-span-3 text-left">Set</span>
+                            <span class="col-span-4">kg</span>
+                            <span class="col-span-4">Reps</span>
+                            <span class="col-span-1"></span>
+                        </div>
+                `;
+
+                exItem.sets.forEach((set, setIndex) => {
+                    const prevSet = (lastPerf && lastPerf.sets[setIndex]) ? lastPerf.sets[setIndex] : null;
+                    const prevText = prevSet ? `${prevSet.weight}kg Ã ${prevSet.reps}` : '-';
+                    const isFilled = set.reps !== '' || set.weight !== '';
+
+                    html += `
+                        <div class="grid grid-cols-12 gap-2 items-center p-1.5 rounded-xl border border-zinc-800/80 ${isFilled ? 'completed-row border-emerald-500/30' : 'bg-zinc-900/50'} transition-all">
+                            <div class="col-span-3 flex flex-col text-left pl-1">
+                                <span class="text-xs font-bold text-white">#${setIndex + 1}</span>
+                                <span class="text-[9px] text-zinc-500 font-mono truncate" title="Previous target">P: ${prevText}</span>
+                            </div>
+                            <div class="col-span-4">
+                                <input type="number" step="0.5" placeholder="${prevSet ? prevSet.weight : '0'}" value="${set.weight !== undefined ? set.weight : ''}"
+                                    onchange="updateSetData(${exIndex}, ${setIndex}, 'weight', this.value)"
+                                    class="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-1.5 px-1 text-center text-xs font-semibold text-white focus:outline-none focus:border-emerald-500">
+                            </div>
+                            <div class="col-span-4">
+                                <input type="number" placeholder="${prevSet ? prevSet.reps : '0'}" value="${set.reps !== undefined ? set.reps : ''}"
+                                    onchange="updateSetData(${exIndex}, ${setIndex}, 'reps', this.value)"
+                                    class="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-1.5 px-1 text-center text-xs font-semibold text-white focus:outline-none focus:border-emerald-500">
+                            </div>
+                            <div class="col-span-1 flex justify-end pr-1">
+                                <button onclick="removeSetFromExercise(${exIndex}, ${setIndex})" class="text-zinc-600 hover:text-rose-400 text-xs p-1">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    </div>
+                    <div class="flex gap-2 pt-1">
+                        <button onclick="addSetToExercise(${exIndex})" class="flex-1 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl text-xs font-semibold border border-zinc-800 transition-colors">
+                            + Add Set
+                        </button>
+                    </div>
+                `;
+
+                card.innerHTML = html;
+                list.appendChild(card);
+            });
+        }
+
+        function updateSetData(exIndex, setIndex, field, value) {
+            if (!dateLogs[selectedDate] || !dateLogs[selectedDate].exercises[exIndex]) return;
+            const targetSet = dateLogs[selectedDate].exercises[exIndex].sets[setIndex];
+            if (!targetSet) return;
+
+            targetSet[field] = value;
+            targetSet.completed = targetSet.weight !== '' || targetSet.reps !== '';
+
+            saveLogsToStorage();
+            renderDateExercises();
+            renderHistoryByDate();
+        }
+
+        function addSetToExercise(exIndex) {
+            const ex = dateLogs[selectedDate].exercises[exIndex];
+            const lastSet = ex.sets[ex.sets.length - 1];
+            
+            ex.sets.push({
+                weight: lastSet ? lastSet.weight : '',
+                reps: lastSet ? lastSet.reps : '',
+                completed: false
+            });
+            
+            saveLogsToStorage();
+            renderDateExercises();
+        }
+
+        function removeSetFromExercise(exIndex, setIndex) {
+            const ex = dateLogs[selectedDate].exercises[exIndex];
+            if (ex && ex.sets) {
+                ex.sets.splice(setIndex, 1);
+                saveLogsToStorage();
+                renderDateExercises();
+            }
+        }
+
+        function removeExerciseFromDate(exIndex) {
+            if (dateLogs[selectedDate] && dateLogs[selectedDate].exercises) {
+                dateLogs[selectedDate].exercises.splice(exIndex, 1);
+                
+                const currentTitle = dateLogs[selectedDate].title;
+                if (currentTitle && SPLIT_PRESETS[currentTitle]) {
+                    splitMemory[currentTitle] = dateLogs[selectedDate].exercises.map(e => e.exerciseId);
+                    saveSplitMemoryToStorage();
+                }
+
+                saveLogsToStorage();
+                renderDateExercises();
+                renderHistoryByDate();
+                showToast("Removed exercise");
+            }
+        }
+
+        function clearCurrentDateLog() {
+            if (confirm(`Clear all logs for ${selectedDate}?`)) {
+                dateLogs[selectedDate] = {
+                    title: 'Select a Split',
+                    exercises: [],
+                    isRestDay: false
+                };
+                saveLogsToStorage();
+                loadWorkoutForDate(selectedDate);
+                renderHistoryByDate();
+                showToast("Cleared day's logs");
+            }
+        }
+
+        function applySplitPreset(splitName) {
+            dateLogs[selectedDate] = { 
+                title: splitName, 
+                exercises: [],
+                isRestDay: splitName === 'Rest Day'
+            };
+
+            highlightActiveSplitButton(splitName);
+
+            if (splitName === 'Rest Day') {
+                saveLogsToStorage();
+                document.getElementById('workout-title-input').value = 'Rest Day';
+                renderDateExercises();
+                renderHistoryByDate();
+                showToast("Logged Rest Day");
+                return;
+            }
+
+            const savedExercisesOrder = splitMemory[splitName] || SPLIT_PRESETS[splitName] || [];
+            const newExercisesList = [];
+
+            savedExercisesOrder.forEach(exId => {
+                const lastPerf = getLastPerformanceForExercise(exId, selectedDate);
+                let initialSets = [];
+
+                if (lastPerf && lastPerf.sets.length > 0) {
+                    initialSets = lastPerf.sets.map(s => ({ weight: s.weight, reps: s.reps, completed: false }));
+                } else {
+                    initialSets = [
+                        { weight: '', reps: '', completed: false },
+                        { weight: '', reps: '', completed: false },
+                        { weight: '', reps: '', completed: false }
+                    ];
+                }
+
+                newExercisesList.push({ exerciseId: exId, sets: initialSets });
+            });
+
+            dateLogs[selectedDate].exercises = newExercisesList;
+            document.getElementById('workout-title-input').value = splitName;
+
+            saveLogsToStorage();
+            renderDateExercises();
+            renderHistoryByDate();
+            showToast(`Loaded ${splitName}`);
+        }
+
+        function openAddExerciseModal() {
+            document.getElementById('add-exercise-modal').classList.remove('hidden');
+            activeModalCategoryFilter = 'All';
+            updateModalCategoryChipsUI();
+            renderModalExercisesList(exercises);
+        }
+
+        function closeAddExerciseModal() {
+            document.getElementById('add-exercise-modal').classList.add('hidden');
+        }
+
+        function setModalCategoryFilter(cat) {
+            activeModalCategoryFilter = cat;
+            updateModalCategoryChipsUI();
+            filterModalExercises();
+        }
+
+        function updateModalCategoryChipsUI() {
+            document.querySelectorAll('.cat-chip').forEach(chip => {
+                if (chip.innerText.trim() === activeModalCategoryFilter) {
+                    chip.className = "cat-chip bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-1 rounded-lg font-bold shrink-0";
+                } else {
+                    chip.className = "cat-chip bg-zinc-900 text-zinc-400 border border-zinc-800 px-2.5 py-1 rounded-lg font-medium shrink-0";
+                }
+            });
+        }
+
+        function getTargetCategoryFromTitle(title) {
+            if (!title) return null;
+            const t = title.toLowerCase();
+            if (t.includes('chest')) return 'Chest';
+            if (t.includes('back')) return 'Back';
+            if (t.includes('leg')) return 'Legs';
+            if (t.includes('arm')) return 'Arms';
+            if (t.includes('shoulder')) return 'Shoulders';
+            return null;
+        }
+
+        function renderModalExercisesList(listToRender) {
+            const container = document.getElementById('modal-exercise-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const currentWorkout = dateLogs[selectedDate];
+            const currentSplitTitle = currentWorkout ? currentWorkout.title : '';
+            const targetCategory = getTargetCategoryFromTitle(currentSplitTitle);
+            const rememberedSplitExercises = splitMemory[currentSplitTitle] || SPLIT_PRESETS[currentSplitTitle] || [];
+            const activeExerciseIds = currentWorkout ? currentWorkout.exercises.map(e => e.exerciseId) : [];
+
+            // Filter by Category Chip if selected
+            let filteredList = listToRender;
+            if (activeModalCategoryFilter !== 'All') {
+                filteredList = filteredList.filter(e => (e.category || '').toLowerCase() === activeModalCategoryFilter.toLowerCase());
+            }
+
+            // Sort so that exercises matching the split muscle group and skipped items come first
+            const sortedList = [...filteredList].sort((a, b) => {
+                const aMatchesTarget = targetCategory && (a.category || '').toLowerCase() === targetCategory.toLowerCase();
+                const bMatchesTarget = targetCategory && (b.category || '').toLowerCase() === targetCategory.toLowerCase();
+
+                const aSkipped = rememberedSplitExercises.includes(a.id) && !activeExerciseIds.includes(a.id);
+                const bSkipped = rememberedSplitExercises.includes(b.id) && !activeExerciseIds.includes(b.id);
+
+                if (aMatchesTarget && !bMatchesTarget) return -1;
+                if (!aMatchesTarget && bMatchesTarget) return 1;
+
+                if (aSkipped && !bSkipped) return -1;
+                if (!aSkipped && bSkipped) return 1;
+
+                return 0;
+            });
+
+            if (sortedList.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-zinc-500 text-xs">
+                        No exercises found for this filter.
+                    </div>
+                `;
+                return;
+            }
+
+            sortedList.forEach(ex => {
+                const isSkippedFromSplit = rememberedSplitExercises.includes(ex.id) && !activeExerciseIds.includes(ex.id);
+                const isTargetCategory = targetCategory && (ex.category || '').toLowerCase() === targetCategory.toLowerCase();
+                
+                const item = document.createElement('div');
+                item.className = `p-3 bg-zinc-900 border ${isSkippedFromSplit || isTargetCategory ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-zinc-800'} rounded-xl flex justify-between items-center hover:border-emerald-500/60 cursor-pointer transition-all active:scale-[0.99]`;
+                item.onclick = () => selectExerciseForDate(ex.id);
+
+                let badgeHtml = '';
+                if (isSkippedFromSplit) {
+                    badgeHtml = '<span class="text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-md">Skipped</span>';
+                } else if (isTargetCategory) {
+                    badgeHtml = `<span class="text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-md">Suggested for ${targetCategory}</span>`;
+                }
+
+                item.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h4 class="font-bold text-xs text-white">${ex.name}</h4>
+                            ${badgeHtml}
+                        </div>
+                        <span class="text-[10px] text-zinc-500">${ex.category || 'General'}</span>
+                    </div>
+                    <i class="fa-solid fa-plus text-xs text-emerald-500"></i>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function filterModalExercises() {
+            const searchInput = document.getElementById('modal-exercise-search');
+            const query = searchInput ? searchInput.value.toLowerCase() : '';
+            const filtered = exercises.filter(e => e.name.toLowerCase().includes(query) || (e.category || '').toLowerCase().includes(query));
+            renderModalExercisesList(filtered);
+        }
+
+        function selectExerciseForDate(exerciseId) {
+            if (!dateLogs[selectedDate]) {
+                dateLogs[selectedDate] = { title: 'Gym Workout', exercises: [] };
+            }
+
+            const currentWorkout = dateLogs[selectedDate];
+            currentWorkout.isRestDay = false;
+
+            const lastPerf = getLastPerformanceForExercise(exerciseId, selectedDate);
+            let initialSets = [];
+
+            if (lastPerf && lastPerf.sets.length > 0) {
+                initialSets = lastPerf.sets.map(s => ({ weight: s.weight, reps: s.reps, completed: false }));
+            } else {
+                initialSets = [
+                    { weight: '', reps: '', completed: false },
+                    { weight: '', reps: '', completed: false },
+                    { weight: '', reps: '', completed: false }
+                ];
+            }
+
+            currentWorkout.exercises.push({
+                exerciseId: exerciseId,
+                sets: initialSets
+            });
+
+            if (currentWorkout.title && SPLIT_PRESETS[currentWorkout.title]) {
+                splitMemory[currentWorkout.title] = currentWorkout.exercises.map(e => e.exerciseId);
+                saveSplitMemoryToStorage();
+            }
+
+            saveLogsToStorage();
+            renderDateExercises();
+            renderHistoryByDate();
+            closeAddExerciseModal();
+            showToast("Added exercise");
+        }
+
+        function renderHistoryByDate() {
+            const container = document.getElementById('history-by-date-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const datesWithLogs = Object.keys(dateLogs)
+                .filter(d => dateLogs[d] && (dateLogs[d].isRestDay || (dateLogs[d].exercises && dateLogs[d].exercises.length > 0)))
+                .sort((a, b) => b.localeCompare(a));
+
+            const totalCount = document.getElementById('total-days-count');
+            if (totalCount) totalCount.innerText = `${datesWithLogs.length} days logged`;
+
+            if (datesWithLogs.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-zinc-600 text-xs border border-zinc-800/60 rounded-2xl bg-zinc-950/30">
+                        No workout history found yet.
+                    </div>
+                `;
+                return;
+            }
+
+            datesWithLogs.forEach(dateStr => {
+                const session = dateLogs[dateStr];
+
+                const card = document.createElement('div');
+                card.className = 'bg-zinc-950 border border-zinc-800 rounded-2xl p-4 space-y-3 shadow-lg';
+
+                if (session.isRestDay) {
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-bed text-amber-400 text-xs"></i>
+                                <div>
+                                    <h3 class="font-bold text-sm text-white">Rest Day</h3>
+                                    <p class="text-[10px] text-amber-400 font-mono">${dateStr}</p>
+                                </div>
+                            </div>
+                            <button onclick="jumpToDateLog('${dateStr}')" class="text-xs bg-zinc-800 text-zinc-300 hover:text-white px-2.5 py-1 rounded-xl border border-zinc-700">
+                                View
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    let exercisesSummaryHtml = '';
+                    session.exercises.forEach(exItem => {
+                        const exObj = exercises.find(e => e.id === exItem.exerciseId) || { name: 'Exercise' };
+                        const completedSets = exItem.sets.filter(s => s.completed || (s.weight && s.reps));
+                        const setsFormatted = completedSets.map(s => `${s.weight}kg Ã ${s.reps}`).join(', ');
+
+                        exercisesSummaryHtml += `
+                            <div class="text-xs border-l-2 border-emerald-500/40 pl-2.5 py-0.5">
+                                <span class="font-bold text-white">${exObj.name}</span>
+                                <p class="text-[10px] text-zinc-400 font-mono">${setsFormatted || 'No sets recorded'}</p>
+                            </div>
+                        `;
+                    });
+
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start border-b border-zinc-800/80 pb-2">
+                            <div>
+                                <h3 class="font-bold text-sm text-white">${session.title || 'Gym Workout'}</h3>
+                                <p class="text-[10px] text-emerald-400 font-mono"><i class="fa-regular fa-calendar mr-1"></i>${dateStr}</p>
+                            </div>
+                            <button onclick="jumpToDateLog('${dateStr}')" class="text-xs bg-zinc-800 text-zinc-300 hover:text-white px-2.5 py-1 rounded-xl border border-zinc-700">
+                                Edit
+                            </button>
+                        </div>
+                        <div class="space-y-2 pt-1">
+                            ${exercisesSummaryHtml}
+                        </div>
+                    `;
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        function jumpToDateLog(dateStr) {
+            selectedDate = dateStr;
+            const datePicker = document.getElementById('workout-date-picker');
+            if (datePicker) datePicker.value = dateStr;
+            handleDateChange(dateStr);
+            switchTab('workout');
+        }
+
+        function setupAnalyticsDropdown() {
+            const select = document.getElementById('analytics-exercise-select');
+            if (!select) return;
+            select.innerHTML = '';
+            
+            exercises.forEach(ex => {
+                const opt = document.createElement('option');
+                opt.value = ex.id;
+                opt.innerText = ex.name;
+                select.appendChild(opt);
+            });
+
+            if (exercises.length > 0) {
+                renderAnalyticsForExercise(exercises[0].id);
+            }
+        }
+
+        function renderAnalyticsForExercise(exerciseId) {
+            const historyContainer = document.getElementById('analytics-exercise-history');
+            if (!historyContainer) return;
+            historyContainer.innerHTML = '';
+
+            const dates = Object.keys(dateLogs).sort((a, b) => a.localeCompare(b));
+            const chartData = [];
+            
+            let maxWeightRecord = 0;
+            let maxWeightDate = 'No records';
+            let bestVolumeRecord = 0;
+
+            dates.forEach(dateStr => {
+                const session = dateLogs[dateStr];
+                if (session && session.exercises) {
+                    const exEntry = session.exercises.find(e => e.exerciseId === exerciseId);
+                    if (exEntry && exEntry.sets && exEntry.sets.length > 0) {
+                        const validSets = exEntry.sets.filter(s => Number(s.weight) > 0 && Number(s.reps) > 0);
+                        if (validSets.length > 0) {
+                            let dayMaxWeight = 0;
+                            let dayTotalVolume = 0;
+                            let dayTotalReps = 0;
+
+                            validSets.forEach(s => {
+                                const w = Number(s.weight);
+                                const r = Number(s.reps);
+                                if (w > dayMaxWeight) dayMaxWeight = w;
+                                dayTotalVolume += w * r;
+                                dayTotalReps += r;
+                            });
+
+                            if (dayMaxWeight > maxWeightRecord) {
+                                maxWeightRecord = dayMaxWeight;
+                                maxWeightDate = dateStr;
+                            }
+
+                            if (dayTotalVolume > bestVolumeRecord) {
+                                bestVolumeRecord = dayTotalVolume;
+                            }
+
+                            chartData.push({
+                                date: dateStr,
+                                maxWeight: dayMaxWeight,
+                                totalVolume: dayTotalVolume,
+                                totalReps: dayTotalReps,
+                                sets: validSets
+                            });
+                        }
+                    }
+                }
+            });
+
+            [...chartData].reverse().forEach(dataItem => {
+                const itemCard = document.createElement('div');
+                itemCard.className = 'bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs flex justify-between items-center';
+                itemCard.innerHTML = `
+                    <div>
+                        <span class="font-mono text-emerald-400 font-bold">${dataItem.date}</span>
+                        <p class="text-[10px] text-zinc-400 font-mono mt-0.5">${dataItem.sets.map(s => `${s.weight}kgÃ${s.reps}`).join(', ')}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-bold text-white block">${dataItem.totalVolume.toLocaleString()} kg</span>
+                        <span class="text-[9px] text-zinc-500 block">${dataItem.totalReps} Total Reps</span>
+                    </div>
+                `;
+                historyContainer.appendChild(itemCard);
+            });
+
+            document.getElementById('stat-max-weight').innerText = `${maxWeightRecord} kg`;
+            document.getElementById('stat-max-weight-date').innerText = maxWeightDate !== 'No records' ? `Achieved: ${maxWeightDate}` : 'No records yet';
+
+            document.getElementById('stat-best-volume').innerText = `${bestVolumeRecord.toLocaleString()} kg`;
+            document.getElementById('stat-best-volume-reps').innerText = bestVolumeRecord > 0 ? 'Peak workload achieved' : 'No records yet';
+
+            if (chartData.length === 0) {
+                historyContainer.innerHTML = `
+                    <div class="text-center py-6 text-zinc-600 text-xs border border-zinc-800/60 rounded-xl bg-zinc-950/30">
+                        No historical workouts recorded for this exercise.
+                    </div>
+                `;
+            }
+
+            renderProgressChart(chartData);
+        }
+
+        function renderProgressChart(chartData) {
+            const canvas = document.getElementById('progress-chart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            if (progressChartInstance) {
+                progressChartInstance.destroy();
+            }
+
+            const labels = chartData.map(d => d.date);
+            const volumes = chartData.map(d => d.totalVolume);
+
+            progressChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Total Volume (kg)',
+                            data: volumes,
+                            borderColor: '#22c55e',
+                            backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.2,
+                            pointBackgroundColor: '#22c55e',
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            grid: { color: '#27272a' },
+                            ticks: { color: '#71717a', font: { size: 9 } }
+                        },
+                        y: {
+                            grid: { color: '#27272a' },
+                            ticks: { color: '#71717a', font: { size: 9 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderExercisesLibrary() {
+            const container = document.getElementById('library-exercises-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            exercises.forEach(ex => {
+                const item = document.createElement('div');
+                item.className = 'p-3 bg-zinc-950 border border-zinc-800 rounded-xl flex justify-between items-center';
+                item.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-xs text-white">${ex.name}</h4>
+                        <span class="text-[10px] text-emerald-400 font-medium">${ex.category || 'General'}</span>
+                    </div>
+                    <button onclick="deleteCustomExercise('${ex.id}')" class="text-zinc-600 hover:text-rose-400 p-1 text-xs">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function filterExercisesList() {
+            const queryInput = document.getElementById('exercise-search-input');
+            const query = queryInput ? queryInput.value.toLowerCase() : '';
+            const filtered = exercises.filter(e => e.name.toLowerCase().includes(query) || (e.category || '').toLowerCase().includes(query));
+            
+            const container = document.getElementById('library-exercises-list');
+            if (!container) return;
+            container.innerHTML = '';
+            filtered.forEach(ex => {
+                const item = document.createElement('div');
+                item.className = 'p-3 bg-zinc-950 border border-zinc-800 rounded-xl flex justify-between items-center';
+                item.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-xs text-white">${ex.name}</h4>
+                        <span class="text-[10px] text-emerald-400 font-medium">${ex.category || 'General'}</span>
+                    </div>
+                    <button onclick="deleteCustomExercise('${ex.id}')" class="text-zinc-600 hover:text-rose-400 p-1 text-xs">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function openCustomExerciseModal() {
+            closeAddExerciseModal();
+            document.getElementById('custom-ex-name').value = '';
+            document.getElementById('create-custom-modal').classList.remove('hidden');
+        }
+
+        function closeCustomExerciseModal() {
+            document.getElementById('create-custom-modal').classList.add('hidden');
+        }
+
+        function saveCustomExercise() {
+            const nameInput = document.getElementById('custom-ex-name');
+            const categoryInput = document.getElementById('custom-ex-category');
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            const category = categoryInput ? categoryInput.value : 'Chest';
+
+            if (!name) {
+                alert("Please enter an exercise name.");
+                return;
+            }
+
+            const newEx = {
+                id: 'ex_' + Date.now(),
+                name: name,
+                category: category
+            };
+
+            exercises.unshift(newEx);
+            saveExercisesToStorage();
+            renderExercisesLibrary();
+            setupAnalyticsDropdown();
+            closeCustomExerciseModal();
+            showToast("Custom exercise saved!");
+        }
+
+        function deleteCustomExercise(id) {
+            if (confirm("Delete this exercise from your library?")) {
+                exercises = exercises.filter(e => e.id !== id);
+                saveExercisesToStorage();
+                renderExercisesLibrary();
+                setupAnalyticsDropdown();
+                showToast("Exercise removed");
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('text-emerald-500');
+                el.classList.add('text-zinc-500');
+            });
+
+            const activeTab = document.getElementById(`tab-${tabName}`);
+            if (activeTab) activeTab.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${tabName}`);
+            if (activeNav) {
+                activeNav.classList.remove('text-zinc-500');
+                activeNav.classList.add('text-emerald-500');
+            }
+
+            if (tabName === 'analytics') {
+                setupAnalyticsDropdown();
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            document.getElementById('toast-message').innerText = msg;
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
